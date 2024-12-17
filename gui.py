@@ -1,25 +1,49 @@
 import streamlit as st
 import pandas as pd
+import io
 from functions import nonlinearity, sac, lap, dap, bic_nl, bic_sac
 
-# Judul aplikasi
-st.title("GUI Proyek Kriptografi")
+# Atur halaman dan ikon aplikasi
+st.set_page_config(
+    page_title="S-Box Tester",
+    page_icon=":lock:",
+    layout="wide",
+)
+
+# Tambahkan Banner atau Gambar Header
+st.image("https://via.placeholder.com/728x90.png?text=Welcome+to+S-Box+Tester", use_column_width=True)
+
+# Judul Aplikasi
+st.title(":lock: **S-Box Tester**")
 st.markdown("""
-Alat untuk menguji S-Box berdasarkan:
-- Nonlinearity (NL)
-- Strict Avalanche Criterion (SAC)
-- Linear Approximation Probability (LAP)
-- Differential Approximation Probability (DAP)
-- Bit Independence Criterion - Nonlinearity (BIC-NL)
-- Bit Independence Criterion - SAC (BIC-SAC)
+<span style="color:blue; font-size:20px;">Selamat datang di aplikasi **S-Box Tester**!</span>  
+Aplikasi ini dirancang untuk menguji kekuatan **S-Box** berdasarkan beberapa metrik, seperti:
+- **Nonlinearity (NL)**
+- **Strict Avalanche Criterion (SAC)**
+- **Linear Approximation Probability (LAP)**
+- **Differential Approximation Probability (DAP)**
+- **Bit Independence Criterion - Nonlinearity (BIC-NL)**
+- **Bit Independence Criterion - SAC (BIC-SAC)**
+
+:bulb: **Tips:**  
+Unggah file Excel Anda untuk memulai pengujian! 🚀
+""", unsafe_allow_html=True)
+
+# Sidebar untuk Navigasi
+st.sidebar.header(":gear: **Langkah-Langkah**")
+st.sidebar.markdown("""
+1. **Unggah File:** Pilih file Excel dengan S-Box.  
+2. **Pilih Operasi:** Pilih metrik pengujian.  
+3. **Lihat Hasil:** Tampilkan hasil di layar.  
+4. **Ekspor Hasil:** Unduh file Excel hasil pengujian.
 """)
 
 # Pilihan import file
-st.sidebar.header("1. Unggah S-Box")
-uploaded_file = st.sidebar.file_uploader("Pilih file Excel dengan S-Box", type=["xlsx"])
+st.sidebar.header("📂 Unggah S-Box")
+uploaded_file = st.sidebar.file_uploader("Pilih file Excel (S-Box):", type=["xlsx"])
 
 if uploaded_file:
-    # Membaca file dan memvalidasi
+    # Membaca file Excel
     try:
         sbox_df = pd.read_excel(uploaded_file)
         if sbox_df.shape[1] < 1:
@@ -29,11 +53,11 @@ if uploaded_file:
         st.error(f"Terjadi kesalahan saat membaca file: {e}")
         st.stop()
 
-    # Menampilkan S-Box
-    st.write("S-Box yang diunggah:")
+    # Menampilkan tabel S-Box
+    st.subheader("📊 S-Box yang Diunggah")
     st.dataframe(sbox_df)
 
-    # Konversi S-Box ke list
+    # Konversi ke list
     sbox = sbox_df.iloc[:, 0].tolist()
 
     # Validasi panjang S-Box
@@ -44,43 +68,58 @@ if uploaded_file:
         st.stop()
 
     # Pilihan pengujian
-    st.sidebar.header("2. Pilih Operasi")
+    st.sidebar.header("🧪 Pilih Operasi Pengujian")
     options = st.sidebar.multiselect(
-        "Pilih pengujian:", ["NL", "SAC", "LAP", "DAP", "BIC-NL", "BIC-SAC"]
+        "Pilih metrik untuk pengujian:", ["NL", "SAC", "LAP", "DAP", "BIC-NL", "BIC-SAC"]
     )
 
+    # Hasil Pengujian
+    st.subheader("📋 Hasil Pengujian")
     results = {}
     if "NL" in options:
         nl = nonlinearity(sbox, n, n)
-        results["Nonlinearity"] = nl
-        st.write(f"**Nonlinearity (NL):** {nl}")
+        results["Nonlinearity (NL)"] = nl
+        st.metric("Nonlinearity (NL)", f"{nl:.2f}")
     if "SAC" in options:
         sac_value = sac(sbox, n)
-        results["SAC"] = sac_value
-        st.write(f"**Strict Avalanche Criterion (SAC):** {sac_value:.5f}")
+        results["Strict Avalanche Criterion (SAC)"] = sac_value
+        st.metric("SAC", f"{sac_value:.5f}")
     if "LAP" in options:
         lap_value = lap(sbox, n)
-        results["LAP"] = lap_value
-        st.write(f"**Linear Approximation Probability (LAP):** {lap_value:.5f}")
+        results["Linear Approximation Probability (LAP)"] = lap_value
+        st.metric("LAP", f"{lap_value:.5f}")
     if "DAP" in options:
         dap_value = dap(sbox, n)
-        results["DAP"] = dap_value
-        st.write(f"**Differential Approximation Probability (DAP):** {dap_value:.6f}")
+        results["Differential Approximation Probability (DAP)"] = dap_value
+        st.metric("DAP", f"{dap_value:.6f}")
     if "BIC-NL" in options:
         bic_nl_value = bic_nl(sbox, n)
-        results["BIC-NL"] = bic_nl_value
-        st.write(f"**Bit Independence Criterion - Nonlinearity (BIC-NL):** {bic_nl_value}")
+        results["Bit Independence Criterion - Nonlinearity (BIC-NL)"] = bic_nl_value
+        st.metric("BIC-NL", f"{bic_nl_value:.2f}")
     if "BIC-SAC" in options:
         bic_sac_value = bic_sac(sbox, n)
-        results["BIC-SAC"] = bic_sac_value
-        st.write(f"**Bit Independence Criterion - SAC (BIC-SAC):** {bic_sac_value:.5f}")
+        results["Bit Independence Criterion - SAC (BIC-SAC)"] = bic_sac_value
+        st.metric("BIC-SAC", f"{bic_sac_value:.5f}")
 
-    # Export hasil ke Excel
+    # Ekspor hasil ke Excel
     if results:
-        st.sidebar.header("3. Ekspor Hasil")
-        export_button = st.sidebar.button("Download Hasil")
-
-        if export_button:
+        st.sidebar.header("📤 Ekspor Hasil")
+        output = io.BytesIO()
+        with pd.ExcelWriter(output, engine='openpyxl') as writer:
             results_df = pd.DataFrame(results.items(), columns=["Metrik", "Nilai"])
-            results_df.to_excel("hasil_pengujian.xlsx", index=False)
-            st.success("Hasil pengujian berhasil diekspor!")
+            results_df.to_excel(writer, index=False, sheet_name="Hasil Pengujian")
+        output.seek(0)
+
+        # Tombol download
+        st.download_button(
+            label="Download Hasil Pengujian",
+            data=output,
+            file_name="hasil_pengujian.xlsx",
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
+else:
+    st.info("Unggah file S-Box dalam format Excel untuk memulai pengujian.")
+
+# Footer
+st.markdown("---")
+st.markdown("**Dibuat dengan ❤️ oleh Kelompok 1 - Dina Wachidah S | Amirul Mustaqim | Rizqi Fitriyani | Farrel Akmal O**")
