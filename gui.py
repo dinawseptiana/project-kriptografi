@@ -3,6 +3,9 @@ import pandas as pd
 import io
 from functions import nonlinearity, sac, lap, dap, bic_nl, bic_sac
 
+#Tambahkan Banner atau Gambar Header
+st.image("https://via.placeholder.com/728x90.png?text=Welcome+to+S-Box+Tester", use_column_width=True)
+
 # Atur halaman dan ikon aplikasi
 st.set_page_config(
     page_title="S-Box Tester",
@@ -10,8 +13,6 @@ st.set_page_config(
     layout="wide",
 )
 
-# Tambahkan Banner atau Gambar Header
-st.image("https://via.placeholder.com/728x90.png?text=Welcome+to+S-Box+Tester", use_column_width=True)
 
 # Judul Aplikasi
 st.title(":lock: **S-Box Tester**")
